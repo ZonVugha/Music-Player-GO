@@ -205,7 +205,9 @@ class AllMusicFragment : Fragment(), SearchView.OnQueryTextListener {
                 || it.itemId == R.id.album_sorting_inv) {
 
                 mSorting = it.order
-                mAllMusic = ListsHelper.getSortedMusicListForAllMusic(mSorting, mAllMusic)
+
+                mAllMusic =
+                    ListsHelper.getSortedMusicListForAllMusic(mSorting, mAllMusic)
 
                 setMusicDataSource(mAllMusic)
 
@@ -221,9 +223,6 @@ class AllMusicFragment : Fragment(), SearchView.OnQueryTextListener {
                 }
 
                 goPreferences.allMusicSorting = mSorting
-
-            } else {
-                mUIControlInterface.onOpenSleepTimerDialog()
             }
 
             return@setOnMenuItemClickListener true

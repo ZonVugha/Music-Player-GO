@@ -10,7 +10,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 32
         versionCode 176
-        versionName "4.4.13"
+        versionName "1"
 
         vectorDrawables.useSupportLibrary true
     }
@@ -33,7 +33,7 @@ android {
         }
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "app_name", "@string/app_name_debug"
+            resValue "string", "app_name", "本地音乐播放器"
             debuggable true
         }
     }

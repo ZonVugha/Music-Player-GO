@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/mainBackground"
+    android:background="@color/windowBackground"
     android:clickable="true"
     android:focusable="true"
     android:orientation="vertical">
@@ -12,7 +12,7 @@
         android:id="@+id/details_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/mainBackground"
+        android:background="@color/windowBackground"
         android:theme="@style/ToolbarStyle"
         app:collapseIcon="@drawable/ic_navigate_before"
         app:navigationIcon="@drawable/ic_navigate_before"
@@ -27,20 +27,18 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:orientation="horizontal">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/album_view_art"
-            android:layout_width="@android:dimen/notification_large_icon_width"
-            android:layout_height="@android:dimen/notification_large_icon_width"
-            android:layout_gravity="center"
-            android:background="?attr/colorPrimary"
+            android:layout_width="@android:dimen/thumbnail_height"
+            android:layout_height="@android:dimen/thumbnail_height"
+            android:layout_gravity="center_vertical"
             android:contentDescription="@string/covers_pref_title"
-            android:scaleType="centerInside"
+            android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ImageView.Cover"
-            app:srcCompat="@drawable/ic_music_note_cover" />
+            app:srcCompat="@drawable/album_art" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -87,7 +85,8 @@
                 android:singleLine="true"
                 android:textAlignment="center"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                android:textColor="?android:attr/textColorTertiary" />
+                android:textColor="?android:attr/textColorTertiary"
+                android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 

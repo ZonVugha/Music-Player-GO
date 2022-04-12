@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
@@ -82,9 +83,6 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
     // Now playing
     private var mNpDialog: NowPlaying? = null
 
-    // Sleep timer dialog
-    private var mSleepTimerDialog: RecyclerSheet? = null
-
     // Music player things
     private lateinit var mMediaPlayerHolder: MediaPlayerHolder
     private val isMediaPlayerHolder get() = ::mMediaPlayerHolder.isInitialized
@@ -112,7 +110,6 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
 
             mMediaPlayerHolder = mPlayerService.mediaPlayerHolder.apply {
                 mediaPlayerInterface = mMediaPlayerInterface
-                onHandleNotificationColorUpdate(ContextCompat.getColor(this@MainActivity, R.color.mainBackground))
             }
 
             // load music and setup UI
@@ -255,7 +252,7 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
         setContentView(mMainActivityBinding.root)
 
         if (VersioningHelper.isOreoMR1()) {
-            window?.navigationBarColor = ContextCompat.getColor(this, R.color.mainBackground)
+            window?.navigationBarColor = ContextCompat.getColor(this, R.color.windowBackground)
             Insetter.builder()
                 .padding(windowInsetTypesOf(navigationBars = true))
                 .margin(windowInsetTypesOf(statusBars = true))
@@ -332,10 +329,6 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
         mMainActivityBinding.viewPager2.offscreenPageLimit = mActiveFragments.size.minus(1)
         mMainActivityBinding.viewPager2.adapter = pagerAdapter
 
-        // By default, ViewPager2's sensitivity is high enough to result in vertical
-        // scroll events being registered as horizontal scroll events. Reflect into the
-        // internal recyclerview and change the touch slope so that touch actions will
-        // act more as a scroll than as a swipe.
         try {
             val recycler = ViewPager2::class.java.getDeclaredField("mRecyclerView").run {
                 isAccessible = true
@@ -638,12 +631,9 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
         if (isMediaPlayerHolder) {
             mMediaPlayerHolder.run {
                 if (isMediaPlayer && isPlaying) {
-
                     onRestartSeekBarCallback()
                     updatePlayingInfo(restore = true)
-
                 } else {
-
                     isSongFromPrefs = goPreferences.latestPlayedSong != null
 
                     var isQueueRestored = goPreferences.isQueue
@@ -692,6 +682,9 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
                         mMediaPlayerHolder.resumeMediaPlayer()
                     }
                 }
+                onUpdateDefaultAlbumArt(
+                    ContextCompat.getDrawable(this@MainActivity, R.drawable.album_art)?.toBitmap()
+                )
             }
         }
     }
@@ -884,19 +877,6 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
                 }
             } else {
                 mMediaPlayerHolder.openEqualizer(this)
-            }
-        }
-    }
-
-    override fun onOpenSleepTimerDialog() {
-        mSleepTimerDialog = RecyclerSheet.newInstance(if (mMediaPlayerHolder.isSleepTimer) {
-            GoConstants.SLEEPTIMER_ELAPSED_TYPE
-        } else {
-            GoConstants.SLEEPTIMER_TYPE
-        }).apply {
-            show(supportFragmentManager, RecyclerSheet.TAG_MODAL_RV)
-            onSleepTimerDialogCancelled = {
-                mSleepTimerDialog = null
             }
         }
     }
@@ -1159,15 +1139,6 @@ class MainActivity : AppCompatActivity(), UIControlInterface, MediaControlInterf
 
         override fun onForegroundServiceStopped() {
             DialogHelper.notifyForegroundServiceStopped(this@MainActivity)
-        }
-
-        override fun onUpdateSleepTimerCountdown(value: Long) {
-            mSleepTimerDialog?.run {
-                if (sheetType == GoConstants.SLEEPTIMER_ELAPSED_TYPE) {
-                    val newValue = value.toFormattedDuration(isAlbum = false, isSeekBar = true)
-                    updateCountdown(newValue)
-                }
-            }
         }
     }
 

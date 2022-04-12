@@ -15,11 +15,10 @@
         android:layout_height="@android:dimen/app_icon_size"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:background="?attr/colorPrimary"
         android:contentDescription="@string/covers_pref_title"
-        android:scaleType="centerInside"
+        android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/ImageView.Cover"
-        app:srcCompat="@drawable/ic_music_note_cover_alt" />
+        app:srcCompat="@drawable/album_art" />
 
     <LinearLayout
         android:layout_width="0dp"

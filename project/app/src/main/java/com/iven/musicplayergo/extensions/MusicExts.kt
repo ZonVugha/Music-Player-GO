@@ -8,12 +8,10 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
 import android.provider.MediaStore
-import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import coil.Coil
-import coil.load
 import coil.request.ImageRequest
 import com.iven.musicplayergo.GoConstants
 import com.iven.musicplayergo.R
@@ -97,31 +95,18 @@ fun Long.toAlbumArtURI(): Uri {
     return ContentUris.withAppendedId("content://media/external/audio/albumart".toUri(), this)
 }
 
-fun Long.waitForCover(context: Context, onDone: (Bitmap?) -> Unit) {
+fun Long.waitForCover(context: Context, canLoadDefault: Boolean, onDone: (Bitmap?) -> Unit) {
+    val defaultAlbumArt = ContextCompat.getDrawable(context, R.drawable.album_art)?.toBitmap()
     Coil.imageLoader(context).enqueue(
         ImageRequest.Builder(context)
             .data(toAlbumArtURI())
             .target(
                 onSuccess = { onDone(it.toBitmap()) },
-                onError = { onDone(null) }
-            )
-            .build()
-    )
-}
-
-fun Long.waitForCoverImageView(imageView: ImageView, albumArt: Int) {
-    Coil.imageLoader(imageView.context).enqueue(
-        ImageRequest.Builder(imageView.context)
-            .data(toAlbumArtURI())
-            .target(
-                onSuccess = {
-                    imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-                    imageView.load(it)
-                            },
-                onError = {
-                    imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-                    imageView.load(ContextCompat.getDrawable(imageView.context, albumArt)?.toBitmap())
-                }
+                onError = { onDone(if (canLoadDefault) {
+                    defaultAlbumArt
+                } else {
+                    null
+                }) }
             )
             .build()
     )
@@ -146,7 +131,6 @@ fun Long.toFormattedDuration(isAlbum: Boolean, isSeekBar: Boolean) = try {
             seconds - TimeUnit.MINUTES.toSeconds(minutes)
         )
     } else {
-        // https://stackoverflow.com/a/9027379
         when {
             isSeekBar -> String.format(
                 "%02d:%02d:%02d",

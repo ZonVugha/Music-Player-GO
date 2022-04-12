@@ -47,7 +47,6 @@ inline fun <T : View> T.afterMeasured(crossinline f: T.() -> Unit) {
     })
 }
 
-// https://stackoverflow.com/a/38241603
 fun Toolbar.getTitleTextView() = try {
     val toolbarClass = Toolbar::class.java
     val titleTextViewField = toolbarClass.getDeclaredField("mTitleTextView")
@@ -184,10 +183,10 @@ fun View.createCircularReveal(isErrorFragment: Boolean, show: Boolean): Animator
             start()
         }
 
-    val mainBackground = ContextCompat.getColor(context, R.color.mainBackground)
+    val windowBackground = ContextCompat.getColor(context, R.color.windowBackground)
     val closeColor = ThemeHelper.resolveColorAttr(context, R.attr.colorControlHighlight)
     val accent = if (!show) {
-        mainBackground
+        windowBackground
     } else {
         ThemeHelper.resolveThemeAccent(context)
     }
@@ -198,7 +197,7 @@ fun View.createCircularReveal(isErrorFragment: Boolean, show: Boolean): Animator
         accent
     }
     val endColor = if (show) {
-        mainBackground
+        windowBackground
     } else {
         closeColor
     }

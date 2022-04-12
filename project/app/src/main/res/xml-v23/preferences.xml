@@ -60,10 +60,10 @@
             app:key="@string/focus_pref"
             app:title="@string/focus_pref_title" />
 
-        <SwitchPreferenceCompat
-            app:defaultValue="true"
-            app:key="@string/headset_pref"
-            app:title="@string/headset_pref_title" />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="true"-->
+<!--            app:key="@string/headset_pref"-->
+<!--            app:title="@string/headset_pref_title" />-->
 
         <ListPreference
             android:defaultValue="0"
@@ -126,9 +126,9 @@
             app:key="@string/anim_pref"
             app:title="@string/anim_pref_title" />
 
-        <Preference
-            app:key="@string/filter_pref"
-            app:title="@string/filter_pref_title" />
+<!--        <Preference-->
+<!--            app:key="@string/filter_pref"-->
+<!--            app:title="@string/filter_pref_title" />-->
 
         <CheckBoxPreference
             app:defaultValue="true"

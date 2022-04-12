@@ -55,8 +55,6 @@ class ItemSwipeCallback(private val ctx: Context, private val isQueueDialog: Boo
         onSwipedAction(viewHolder, direction)
     }
 
-    // Credits to Aidan Follestad :)
-    // https://github.com/afollestad/recyclical/blob/master/swipe/src/main/java/com/afollestad/recyclical/swipe/SwipeItemTouchListener.kt#L120
     override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean) {
         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
 

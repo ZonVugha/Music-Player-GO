@@ -6,8 +6,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.SeekBar
+import android.widget.TextView
 import androidx.core.content.ContextCompat
+import coil.load
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.iven.musicplayergo.GoConstants
@@ -76,22 +80,13 @@ class NowPlaying: BottomSheetDialogFragment() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             dialog?.window?.navigationBarColor = ContextCompat.getColor(requireActivity(),
-                R.color.mainBackground)
+                R.color.windowBackground)
             Insetter.builder()
                 .padding(windowInsetTypesOf(navigationBars = true))
                 .margin(windowInsetTypesOf(statusBars = true))
                 .applyToView(view)
         }
 
-        view.afterMeasured {
-            val ratio = if (ThemeHelper.isDeviceLand(resources)) {
-                0.30f
-            } else {
-                0.65f
-            }
-            val dim = (width * ratio).toInt()
-            _npCoverBinding?.npCover?.layoutParams = LinearLayout.LayoutParams(dim, dim)
-        }
         setupView()
     }
 
@@ -132,7 +127,7 @@ class NowPlaying: BottomSheetDialogFragment() {
             _nowPlayingBinding?.root?.afterMeasured {
                 dialog?.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)
                     ?.let { bs ->
-                        BottomSheetBehavior.from(bs).state = BottomSheetBehavior.STATE_EXPANDED
+                        BottomSheetBehavior.from(bs).peekHeight = height
                     }
             }
         }
@@ -156,7 +151,6 @@ class NowPlaying: BottomSheetDialogFragment() {
                     npPlaybackSpeed.visibility = View.GONE
                 }
 
-                npCover.background.alpha = 10
                 npSaveTime.setOnClickListener { saveSongPosition() }
                 npEqualizer.setOnClickListener { mUIControlInterface.onOpenEqualizer() }
                 npLove.setOnClickListener {
@@ -330,7 +324,9 @@ class NowPlaying: BottomSheetDialogFragment() {
     private fun loadNpCover(selectedSong: Music) {
         if (goPreferences.isCovers) {
             mAlbumIdNp = selectedSong.albumId
-            mAlbumIdNp?.waitForCoverImageView(_npCoverBinding?.npCover!!, R.drawable.ic_music_note_cover)
+            _npCoverBinding?.npCover?.load(selectedSong.albumId?.toAlbumArtURI()) {
+                error(ContextCompat.getDrawable(requireActivity(), R.drawable.album_art))
+            }
         }
     }
 

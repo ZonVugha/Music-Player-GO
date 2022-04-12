@@ -64,8 +64,8 @@ class SettingsFragment : Fragment() {
             }
             setOnMenuItemClickListener {
                 when (it.itemId) {
-                    R.id.github_page -> openGitHubPage()
-                    R.id.locale_switcher -> openLocaleSwitcher()
+//                    f link
+                    //R.id.github_page -> openGitHubPage()
                 }
                 return@setOnMenuItemClickListener true
             }
@@ -79,36 +79,19 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    private fun openLocaleSwitcher() {
-        val locales = ContextUtils.getLocalesList(resources)
-
-        MaterialAlertDialogBuilder(requireActivity())
-            .setTitle(R.string.locale_pref_title)
-            .setItems(locales.values.toTypedArray()) { _, which ->
-                // Respond to item chosen
-                val newLocale = locales.keys.elementAt(which)
-                if (goPreferences.locale != newLocale) {
-                    goPreferences.locale = locales.keys.elementAt(which)
-                    ThemeHelper.applyChanges(requireActivity(), restoreSettings = true)
-                }
-            }
-            .show()
-    }
-
     @SuppressLint("QueryPermissionsNeeded")
     private fun openGitHubPage() {
        val customTabsIntent = CustomTabsIntent.Builder()
            .setShareState(CustomTabsIntent.SHARE_STATE_ON)
            .setShowTitle(true)
            .build()
-
+        //find me
         val parsedUri = getString(R.string.app_git).toUri()
         val manager = requireActivity().packageManager
         val info = manager.queryIntentActivities(customTabsIntent.intent, 0)
         if (info.size > 0) {
             customTabsIntent.launchUrl(requireActivity(), parsedUri)
         } else {
-            //from: https://github.com/immuni-app/immuni-app-android/blob/development/extensions/src/main/java/it/ministerodellasalute/immuni/extensions/utils/ExternalLinksHelper.kt
             val browserIntent = Intent(Intent.ACTION_VIEW, parsedUri)
             browserIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
 

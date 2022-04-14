@@ -29,11 +29,11 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            resValue "string", "app_name", "@string/app_name_release"
+            resValue "string", "app_name", "本地音乐播放器"
         }
         debug {
             applicationIdSuffix ".debug"
-            resValue "string", "app_name", "本地音乐播放器"
+            resValue "string", "app_name", "@string/app_name_debug"
             debuggable true
         }
     }

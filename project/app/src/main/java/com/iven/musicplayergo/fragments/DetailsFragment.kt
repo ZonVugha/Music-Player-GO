@@ -21,7 +21,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.google.android.material.card.MaterialCardView
 import com.iven.musicplayergo.GoConstants
 import com.iven.musicplayergo.MusicViewModel
@@ -279,7 +278,15 @@ class DetailsFragment : Fragment(), SearchView.OnQueryTextListener {
                         mSongsList?.size
                     )
                     selectedAlbumViewSize.isSelected = true
-                    loadCoverIntoTarget(firstSong, albumViewArt)
+                    if (goPreferences.isCovers) {
+                        albumViewArt.background.alpha = 10
+                        firstSong?.albumId?.waitForCoverImageView(albumViewArt, R.drawable.ic_music_note_cover_alt)
+                    }
+
+                    albumViewArt.afterMeasured {
+                        val dim = width * 2
+                        albumViewArt.layoutParams = LinearLayout.LayoutParams(dim, dim)
+                    }
                 }
 
                 val searchView =
@@ -533,6 +540,7 @@ class DetailsFragment : Fragment(), SearchView.OnQueryTextListener {
                     R.id.date_added_sorting_inv -> applySortingToMusic(GoConstants.DATE_ADDED_SORTING_INV)
                     R.id.artist_sorting -> applySortingToMusic(GoConstants.ARTIST_SORTING)
                     R.id.artist_sorting_inv-> applySortingToMusic(GoConstants.ARTIST_SORTING_INV)
+                    R.id.sleeptimer -> mUIControlInterface.onOpenSleepTimerDialog()
                 }
                 return@setOnMenuItemClickListener true
             }
@@ -587,16 +595,6 @@ class DetailsFragment : Fragment(), SearchView.OnQueryTextListener {
         if (sOpenNewDetailsFragment) {
             mUIControlInterface.onOpenNewDetailsFragment()
             sOpenNewDetailsFragment = false
-        }
-    }
-
-    private fun loadCoverIntoTarget(song: Music?, target: ImageView) {
-        if (goPreferences.isCovers) {
-            target.load(song?.albumId?.toAlbumArtURI()) {
-                error(ContextCompat.getDrawable(requireActivity(), R.drawable.album_art))
-            }
-        } else {
-            target.load(ContextCompat.getDrawable(requireActivity(), R.drawable.album_art))
         }
     }
 
@@ -680,7 +678,11 @@ class DetailsFragment : Fragment(), SearchView.OnQueryTextListener {
                         0
                     }
 
-                    loadCoverIntoTarget(itemAlbum?.music?.first(), albumCover)
+                    albumCover.background.alpha = 10
+
+                    if (goPreferences.isCovers) {
+                        itemAlbum?.music?.first()?.albumId?.waitForCoverImageView(albumCover, R.drawable.ic_music_note_cover_alt)
+                    }
 
                     setOnClickListener {
                         if (absoluteAdapterPosition != mSelectedAlbumPosition) {

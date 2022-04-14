@@ -1,7 +1,10 @@
 package com.iven.musicplayergo.helpers
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.text.Spanned
 import android.view.Gravity
 import android.view.View
@@ -10,10 +13,7 @@ import androidx.core.text.parseAsHtml
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.iven.musicplayergo.GoConstants
 import com.iven.musicplayergo.R
-import com.iven.musicplayergo.extensions.enablePopupIcons
-import com.iven.musicplayergo.extensions.setTitle
-import com.iven.musicplayergo.extensions.setTitleColor
-import com.iven.musicplayergo.extensions.toFormattedDuration
+import com.iven.musicplayergo.extensions.*
 import com.iven.musicplayergo.goPreferences
 import com.iven.musicplayergo.models.Music
 import com.iven.musicplayergo.player.MediaPlayerHolder

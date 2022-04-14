@@ -2,12 +2,14 @@ package com.iven.musicplayergo.dialogs
 
 
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.recyclerview.widget.GridLayoutManager
@@ -40,18 +42,19 @@ class RecyclerSheet: BottomSheetDialogFragment() {
     private lateinit var mQueueAdapter: QueueAdapter
 
     // sheet type
-    private var mSheetType = GoConstants.ACCENT_TYPE
+    var sheetType = GoConstants.ACCENT_TYPE
 
     // interfaces
     private lateinit var mUIControlInterface: UIControlInterface
     private lateinit var mMediaControlInterface: MediaControlInterface
     var onQueueCancelled: (() -> Unit)? = null
+    var onSleepTimerDialogCancelled: (() -> Unit)? = null
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
         arguments?.getString(TAG_TYPE)?.let { which ->
-            mSheetType = which
+            sheetType = which
         }
 
         // This makes sure that the container activity has implemented
@@ -67,6 +70,11 @@ class RecyclerSheet: BottomSheetDialogFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         _modalRvBinding = ModalRvBinding.inflate(inflater, container, false)
         return _modalRvBinding?.root
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onSleepTimerDialogCancelled?.invoke()
     }
 
     override fun onDestroyView() {
@@ -85,12 +93,13 @@ class RecyclerSheet: BottomSheetDialogFragment() {
             modalRv.isVerticalScrollBarEnabled = false
             modalRv.isHorizontalScrollBarEnabled = false
 
-            when (mSheetType) {
+            when (sheetType) {
 
                 GoConstants.ACCENT_TYPE -> {
 
                     // use alt RecyclerView
                     modalRv.visibility = View.GONE
+                    sleepTimerElapsed.visibility = View.GONE
 
                     val accentsAdapter = AccentsAdapter(requireActivity())
                     val layoutManager =  LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
@@ -116,6 +125,7 @@ class RecyclerSheet: BottomSheetDialogFragment() {
                     dialogTitle = getString(R.string.active_fragments_pref_title)
 
                     modalRv.visibility = View.GONE
+                    sleepTimerElapsed.visibility = View.GONE
 
                     val activeTabsAdapter = ActiveTabsAdapter(requireActivity())
                     modalRvAlt.adapter = activeTabsAdapter
@@ -140,6 +150,7 @@ class RecyclerSheet: BottomSheetDialogFragment() {
                 GoConstants.FILTERS_TYPE -> {
 
                     modalRv.visibility = View.GONE
+                    sleepTimerElapsed.visibility = View.GONE
 
                     dialogTitle = getString(R.string.filter_pref_title)
 
@@ -166,6 +177,7 @@ class RecyclerSheet: BottomSheetDialogFragment() {
 
                     modalRvAlt.visibility = View.GONE
                     _modalRvBinding?.btnContainer?.visibility = View.GONE
+                    sleepTimerElapsed.visibility = View.GONE
 
                     mMediaControlInterface.onGetMediaPlayerHolder()?.run {
 
@@ -203,11 +215,52 @@ class RecyclerSheet: BottomSheetDialogFragment() {
                     }
                 }
 
+                GoConstants.SLEEPTIMER_TYPE -> {
+
+                    dialogTitle = getString(R.string.sleeptimer)
+
+                    val sleepTimerAdapter = SleepTimerAdapter()
+                    modalRv.visibility = View.GONE
+                    modalRvAlt.layoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
+                    modalRvAlt.adapter = sleepTimerAdapter
+                    sleepTimerElapsed.visibility = View.GONE
+
+                    btnNegative.setOnClickListener {
+                        dismiss()
+                    }
+                    btnPositive.setOnClickListener {
+                        mMediaControlInterface.onGetMediaPlayerHolder()?.pauseBySleepTimer(sleepTimerAdapter.getSelectedSleepTimerValue(), sleepTimerAdapter.getSelectedSleepTimer())
+                        dismiss()
+                    }
+                }
+
+                GoConstants.SLEEPTIMER_ELAPSED_TYPE -> {
+
+                    dialogTitle = getString(R.string.sleeptimer_remaining_time)
+
+                    modalRv.visibility = View.GONE
+                    modalRvAlt.visibility = View.GONE
+
+                    btnNegative.setOnClickListener {
+                        dismiss()
+                    }
+
+                    btnPositive.run {
+                        text = getString(R.string.sleeptimer_stop)
+                        contentDescription = getString(R.string.sleeptimer_cancel_desc)
+                        setOnClickListener {
+                            mMediaControlInterface.onGetMediaPlayerHolder()?.cancelSleepTimer()
+                            dismiss()
+                        }
+                    }
+                }
+
                 else -> {
 
                     dialogTitle = getString(R.string.favorites)
 
                     modalRvAlt.visibility = View.GONE
+                    sleepTimerElapsed.visibility = View.GONE
 
                     _modalRvBinding?.btnContainer?.visibility = View.GONE
 
@@ -240,7 +293,7 @@ class RecyclerSheet: BottomSheetDialogFragment() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             dialog?.window?.navigationBarColor = ContextCompat.getColor(requireActivity(),
-                R.color.windowBackground)
+                R.color.mainBackground)
             Insetter.builder()
                 .padding(windowInsetTypesOf(navigationBars = true))
                 .margin(windowInsetTypesOf(statusBars = true))
@@ -251,6 +304,60 @@ class RecyclerSheet: BottomSheetDialogFragment() {
     fun swapQueueSong(song: Music?) {
         if (::mQueueAdapter.isInitialized) {
             mQueueAdapter.swapSelectedSong(song)
+        }
+    }
+
+    fun updateCountdown(value: String) {
+        _modalRvBinding?.sleepTimerElapsed?.text = value
+    }
+
+    private inner class SleepTimerAdapter : RecyclerView.Adapter<SleepTimerAdapter.SleepTimerHolder>() {
+
+        private val sleepOptions = resources.getStringArray(R.array.sleepOptions)
+        private val sleepOptionValues = resources.getIntArray(R.array.sleepOptionsValues)
+
+        private var mSelectedPosition = 0
+
+        private val mDefaultTextColor =
+            ThemeHelper.resolveColorAttr(requireActivity(), android.R.attr.textColorPrimary)
+
+        fun getSelectedSleepTimer(): String = sleepOptions[mSelectedPosition]
+        fun getSelectedSleepTimerValue() = sleepOptionValues[mSelectedPosition].toLong()
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = SleepTimerHolder(
+            LayoutInflater.from(parent.context).inflate(
+                R.layout.sleeptimer_item,
+                parent,
+                false
+            )
+        )
+
+        override fun getItemCount(): Int {
+            return sleepOptions.size
+        }
+
+        override fun onBindViewHolder(holder: SleepTimerHolder, position: Int) {
+            holder.bindItems(sleepOptions[holder.absoluteAdapterPosition])
+        }
+
+        inner class SleepTimerHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+            fun bindItems(itemSleepOption: String) {
+
+                (itemView as TextView).run {
+                    text = itemSleepOption
+                    setTextColor(if (mSelectedPosition == absoluteAdapterPosition) {
+                        ThemeHelper.resolveThemeAccent(requireActivity())
+                    } else {
+                        mDefaultTextColor
+                    })
+                    setOnClickListener {
+                        notifyItemChanged(mSelectedPosition)
+                        mSelectedPosition = absoluteAdapterPosition
+                        notifyItemChanged(mSelectedPosition)
+                    }
+                }
+            }
         }
     }
 

@@ -1,16 +1,20 @@
 package com.iven.musicplayergo.fragments
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
 import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.iven.musicplayergo.dialogs.RecyclerSheet
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -23,6 +27,7 @@ import com.iven.musicplayergo.goPreferences
 import com.iven.musicplayergo.helpers.DialogHelper
 import com.iven.musicplayergo.helpers.ListsHelper
 import com.iven.musicplayergo.helpers.ThemeHelper
+import com.iven.musicplayergo.ui.MainActivity
 import com.iven.musicplayergo.ui.UIControlInterface
 import com.reddit.indicatorfastscroll.FastScrollItemIndicator
 import com.reddit.indicatorfastscroll.FastScrollerView
@@ -109,9 +114,9 @@ class MusicContainersFragment : Fragment(),
 
             stb.inflateMenu(R.menu.menu_search)
 
-            stb.overflowIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.ic_sort)
-
             stb.title = getFragmentTitle()
+
+            stb.overflowIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.ic_sort)
 
             stb.setNavigationOnClickListener {
                 mUiControlInterface.onCloseActivity()
@@ -133,6 +138,7 @@ class MusicContainersFragment : Fragment(),
                         _musicContainerListBinding?.artistsFoldersRv?.setupFastScrollerPadding(forceNoPadding = hasFocus,
                             resources)
                         stb.menu.setGroupVisible(R.id.sorting, !hasFocus)
+                        stb.menu.findItem(R.id.sleeptimer).isVisible = !hasFocus
                     }
                 }
                 setMenuOnItemClickListener(this)
@@ -266,27 +272,28 @@ class MusicContainersFragment : Fragment(),
     private fun setMenuOnItemClickListener(menu: Menu) {
         _musicContainerListBinding?.searchToolbar?.setOnMenuItemClickListener {
 
-            if (it.itemId != R.id.action_search) {
+            when (it.itemId) {
+                R.id.sleeptimer -> mUiControlInterface.onOpenSleepTimerDialog()
+                else -> if (it.itemId != R.id.action_search) {
+                    mSorting = it.order
 
-                mSorting = it.order
+                    mList = getSortedList()
+                    setListDataSource(mList)
 
-                mList = getSortedList()
-                setListDataSource(mList)
-
-                mSortMenuItem.setTitleColor(
-                    ThemeHelper.resolveColorAttr(
-                        requireActivity(),
-                        android.R.attr.textColorPrimary
+                    mSortMenuItem.setTitleColor(
+                        ThemeHelper.resolveColorAttr(
+                            requireActivity(),
+                            android.R.attr.textColorPrimary
+                        )
                     )
-                )
 
-                mSortMenuItem = ListsHelper.getSelectedSorting(mSorting, menu).apply {
-                    setTitleColor(ThemeHelper.resolveThemeAccent(requireActivity()))
+                    mSortMenuItem = ListsHelper.getSelectedSorting(mSorting, menu).apply {
+                        setTitleColor(ThemeHelper.resolveThemeAccent(requireActivity()))
+                    }
+
+                    saveSortingMethodToPrefs(mSorting)
                 }
-
-                saveSortingMethodToPrefs(mSorting)
             }
-
             return@setOnMenuItemClickListener true
         }
     }
@@ -356,13 +363,11 @@ class MusicContainersFragment : Fragment(),
                     val subtitle = itemView.findViewById<TextView>(R.id.subtitle)
 
                     if (sLaunchedByAlbumView) {
-                        val albumCover = itemView.findViewById<ImageView>(R.id.album_cover)
+                        val albumCover = itemView.findViewById<ImageView>(R.id.album_cover).apply {
+                            background.alpha = 10
+                        }
                         if (goPreferences.isCovers) {
-                            albumCover.load(mMusicViewModel.deviceMusicByAlbum?.get(item)?.first()?.albumId?.toAlbumArtURI()) {
-                                error(ContextCompat.getDrawable(requireActivity(), R.drawable.album_art))
-                            }
-                        } else {
-                            albumCover.load(ContextCompat.getDrawable(requireActivity(), R.drawable.album_art))
+                            mMusicViewModel.deviceMusicByAlbum?.get(item)?.first()?.albumId?.waitForCoverImageView(albumCover, R.drawable.ic_music_note_cover_alt)
                         }
                     }
 

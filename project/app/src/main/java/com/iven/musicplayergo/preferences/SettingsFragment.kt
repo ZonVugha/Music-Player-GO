@@ -35,8 +35,6 @@ class SettingsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        // This makes sure that the container activity has implemented
-        // the callback interface. If not, it throws an exception
         try {
             mUIControlInterface = activity as UIControlInterface
         } catch (e: ClassCastException) {
@@ -64,8 +62,7 @@ class SettingsFragment : Fragment() {
             }
             setOnMenuItemClickListener {
                 when (it.itemId) {
-//                    f link
-                    //R.id.github_page -> openGitHubPage()
+
                 }
                 return@setOnMenuItemClickListener true
             }
@@ -79,13 +76,14 @@ class SettingsFragment : Fragment() {
         }
     }
 
+
     @SuppressLint("QueryPermissionsNeeded")
     private fun openGitHubPage() {
        val customTabsIntent = CustomTabsIntent.Builder()
            .setShareState(CustomTabsIntent.SHARE_STATE_ON)
            .setShowTitle(true)
            .build()
-        //find me
+
         val parsedUri = getString(R.string.app_git).toUri()
         val manager = requireActivity().packageManager
         val info = manager.queryIntentActivities(customTabsIntent.intent, 0)

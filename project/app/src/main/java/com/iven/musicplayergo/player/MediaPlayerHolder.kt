@@ -10,7 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
-import android.graphics.Bitmap
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -18,8 +17,7 @@ import android.media.audiofx.AudioEffect
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
 import android.media.audiofx.Virtualizer
-import android.os.Build
-import android.os.PowerManager
+import android.os.*
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.MediaMetadataCompat.*
 import android.support.v4.media.session.PlaybackStateCompat
@@ -149,6 +147,10 @@ class MediaPlayerHolder:
             mediaPlayer.currentPosition
         }
 
+    // Sleep Timer
+    private var mSleepTimer: CountDownTimer? = null
+    val isSleepTimer get() = mSleepTimer != null
+
     // Media player state/booleans
     val isPlaying get() = ::mediaPlayer.isInitialized && mediaPlayer.isPlaying
     val isMediaPlayer get() = ::mediaPlayer.isInitialized
@@ -177,10 +179,10 @@ class MediaPlayerHolder:
     private lateinit var mPlayerBroadcastReceiver: PlayerBroadcastReceiver
     private lateinit var mMusicNotificationManager: MusicNotificationManager
 
-    fun setMusicService(mPlayerService: PlayerService) {
+    fun setMusicService(playerService: PlayerService) {
         mediaPlayer = MediaPlayer()
-        this.mPlayerService = mPlayerService
-        mAudioManager = mPlayerService.getSystemService()
+        mPlayerService = playerService
+        mAudioManager = playerService.getSystemService()
         mMusicNotificationManager = mPlayerService.musicNotificationManager
         registerActionsReceiver()
         mPlayerService.configureMediaSession()
@@ -325,7 +327,7 @@ class MediaPlayerHolder:
                 }
 
                 if (goPreferences.isCovers) {
-                    albumId?.waitForCover(mPlayerService, canLoadDefault = false) { bmp ->
+                    albumId?.waitForCover(mPlayerService) { bmp ->
                         putBitmap(METADATA_KEY_ALBUM_ART, bmp)
                     }
                 }
@@ -374,8 +376,9 @@ class MediaPlayerHolder:
         stopUpdatingCallbackWithPosition()
     }
 
-    fun onUpdateDefaultAlbumArt(bitmapRes: Bitmap?) {
-        mMusicNotificationManager.onUpdateDefaultAlbumArt(bitmapRes, updateNotification = isPlaying)
+    fun onHandleNotificationColorUpdate(color: Int) {
+        mMusicNotificationManager.onSetNotificationColor(color)
+        mMusicNotificationManager.onHandleNotificationUpdate(isAdditionalActionsChanged = false)
     }
 
     fun onHandleNotificationUpdate(isAdditionalActionsChanged: Boolean) {
@@ -795,6 +798,32 @@ class MediaPlayerHolder:
             mEqualizer = null
             mBassBoost = null
             mVirtualizer = null
+        }
+    }
+
+    fun cancelSleepTimer() {
+        mSleepTimer?.run {
+            cancel()
+            mSleepTimer = null
+        }
+    }
+
+    fun pauseBySleepTimer(minutes: Long, label: String){
+        if (isPlaying) {
+            synchronized(cancelSleepTimer()) {
+                mSleepTimer = object : CountDownTimer(TimeUnit.MINUTES.toMillis(minutes), 1000) {
+                    override fun onTick(p0: Long) {
+                        mediaPlayerInterface.onUpdateSleepTimerCountdown(p0)
+                    }
+                    override fun onFinish() {
+                        mSleepTimer = null
+                        pauseMediaPlayer()
+                    }
+                }.start()
+                mPlayerService.getString(R.string.sleeptimer_enabled, label).toToast(mPlayerService)
+            }
+        } else {
+            R.string.error_bad_id.toToast(mPlayerService)
         }
     }
 

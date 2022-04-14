@@ -49,8 +49,8 @@
     <string name="eq">EQ</string>
 
     <!-- Other preferences titles/subtitles -->
-    <string name="category_ui">UI</string>
-    <string name="category_audio">Audio</string>
+    <string name="category_ui">样式</string>
+    <string name="category_audio">播放器</string>
     <string name="accent_and_hex">&lt;b>%1s&lt;/b>&#160;/&#160;%2s</string>
 
     <!-- Preferences keys used in settings-->

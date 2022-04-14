@@ -125,9 +125,13 @@
     <!-- Preferences - Directly remove items from (queue, favorites) -->
     <string name="direct_remove_pref_title">删除前确认</string>
     <string name="direct_remove_pref_sum">在删除队列/收藏曲目之前请求确认</string>
-
+    <!-- Sleep timer-->
+    <string name="sleeptimer_enabled">%1s 后停止播放</string>
+    <string name="sleeptimer_stop">停止</string>
+    <string name="sleeptimer_cancel_desc">停止睡眠定时器</string>
+    <string name="sleeptimer">睡眠定时器</string>
+    <string name="sleeptimer_remaining_time">睡眠定时器：剩余时间</string>
     <!-- Preferences - Accents names -->
-
     <string name="red">Red</string>
     <string name="pink">Pink</string>
     <string name="purple">Purple</string>
@@ -147,7 +151,6 @@
     <string name="brown">Brown</string>
     <string name="grey">Grey</string>
     <string name="blue_grey">Blue grey</string>
-
     <string name="red_200">Red 200</string>
     <string name="pink_200">Pink 200</string>
     <string name="purple_200">Purple 200</string>
